@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore, HapticIntensity } from '../store/settingsStore';
 import * as Haptics from '../lib/haptics';
+import * as Updates from 'expo-updates';
 import { signOut, updateDisplayName } from '../lib/authService';
 import { colors, spacing, fonts, layout } from '../theme';
 import { Text } from '../components/primitives/Text';
@@ -38,6 +39,40 @@ export function SettingsScreen() {
       Alert.alert('Error', e.message);
     }
   }, [newName]);
+
+  const handleCheckForUpdates = useCallback(async () => {
+    try {
+      if (__DEV__) {
+        Alert.alert('SYS.INFO', 'OTA updates are disabled in development builds.');
+        return;
+      }
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        Alert.alert(
+          'SYS.UPDATE',
+          'A new update is available. Download and restart?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Update',
+              onPress: async () => {
+                try {
+                  await Updates.fetchUpdateAsync();
+                  await Updates.reloadAsync();
+                } catch (err: any) {
+                  Alert.alert('SYS.ERROR', 'Failed to fetch update: ' + err.message);
+                }
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert('SYS.INFO', 'No updates available. You are on the latest version.');
+      }
+    } catch (error: any) {
+      Alert.alert('SYS.ERROR', `Error checking for updates: ${error.message}`);
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -170,6 +205,15 @@ export function SettingsScreen() {
                 onPress={() => setInfoVisible(true)}
               >
                 [ VIEW_APP_INFO ]
+              </Button>
+            </View>
+            <View style={styles.row}>
+              <Button 
+                variant="ghost" 
+                style={styles.actionBtn}
+                onPress={handleCheckForUpdates}
+              >
+                [ CHECK_FOR_UPDATES ]
               </Button>
             </View>
           </View>
