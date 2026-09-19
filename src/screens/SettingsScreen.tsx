@@ -224,7 +224,7 @@ export function SettingsScreen() {
       <Dialog
         visible={infoVisible}
         title="SYS.INFO // BLENDIN"
-        message={`BlendIn is a high-tension social deduction party game that eliminates the complicated setup of traditional board games.\n\nNo extra props, no long rule explanations—just pure deception and deduction that you can play anywhere.\n\nMade by Prathmesh Deshkar.`}
+        message={`BlendIn is a high-tension social deduction party game that eliminates the complicated setup of traditional board games.\n\nNo extra props, no long rule explanations, just pure deception and deduction that you can play anywhere.\n\nMade by Prathmesh Deshkar.`}
         primaryAction={{
           label: 'Acknowledge',
           onPress: () => setInfoVisible(false),

@@ -48,7 +48,7 @@ const STEPS = [
     id: 'imposter',
     eyebrow: '02 / ANOMALY',
     headline: 'ONE PLAYER IS DIFFERENT',
-    body: 'The imposter receives a decoy word—or nothing at all. They must observe, adapt, blend in, and survive.',
+    body: 'The imposter receives a decoy word, or nothing at all. They must observe, adapt, blend in, and survive.',
   },
   {
     id: 'vote',
