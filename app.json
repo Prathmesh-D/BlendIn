@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "BlendIn",
+    "slug": "BlendIn",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00232f"
+    },
+    "web": {
+      "favicon": "./assets/favicon_io/favicon-32x32.png"
+    }
+  }
+}
