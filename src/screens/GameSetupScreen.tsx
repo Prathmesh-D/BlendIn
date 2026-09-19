@@ -31,6 +31,7 @@ import { colors, spacing, radii, layout, fonts } from '../theme';
 import { Text } from '../components/primitives/Text';
 import { Button } from '../components/primitives/Button';
 import { Surface } from '../components/primitives/Surface';
+import { Dialog } from '../components/primitives/Dialog';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   // Legacy layout animation enabled, but we rely on Reanimated for new arch
@@ -265,7 +266,11 @@ export function GameSetupScreen() {
         navigation.navigate('RoleReveal');
       }
     } catch (e: any) {
-      setError(e.message ?? 'Something went wrong.');
+      let friendlyMessage = e.message ?? 'Something went wrong.';
+      if (friendlyMessage.includes('fetch') || friendlyMessage.includes('Network') || friendlyMessage.includes('UnknownHostException')) {
+        friendlyMessage = 'Network Error. Please check your internet connection and try again.';
+      }
+      setError(friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -512,12 +517,7 @@ export function GameSetupScreen() {
             </Text>
           </Pressable>
         </View>
-
-        {error && (
-          <Text variant="bodyS" color="error" style={styles.errorText}>
-            {error}
-          </Text>
-        )}
+        </View>
       </ScrollView>
 
       {/* Bottom Bar */}
@@ -554,6 +554,18 @@ export function GameSetupScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Error Dialog */}
+      <Dialog
+        visible={!!error}
+        title="SYS.ERROR // SETUP_FAILED"
+        message={error ?? ''}
+        primaryAction={{
+          label: 'Acknowledge',
+          onPress: () => setError(null),
+        }}
+        onDismiss={() => setError(null)}
+      />
     </SafeAreaView>
   );
 }

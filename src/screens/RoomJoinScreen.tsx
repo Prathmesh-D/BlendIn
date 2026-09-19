@@ -38,6 +38,7 @@ import { useGameStore } from '../store/gameStore';
 import { colors, spacing, radii, layout, fonts, springs } from '../theme';
 import { Text } from '../components/primitives/Text';
 import { Button } from '../components/primitives/Button';
+import { Dialog } from '../components/primitives/Dialog';
 
 const CODE_LENGTH = 6;
 
@@ -116,7 +117,11 @@ export function RoomJoinScreen() {
         isHost: false,
       });
     } catch (err: any) {
-      setError(err.message ?? 'Could not find that room. Check the code and try again.');
+      let friendlyMessage = err.message ?? 'Could not find that room. Check the code and try again.';
+      if (friendlyMessage.includes('fetch') || friendlyMessage.includes('Network') || friendlyMessage.includes('UnknownHostException')) {
+        friendlyMessage = 'Network Error. Please check your internet connection and try again.';
+      }
+      setError(friendlyMessage);
       triggerShake();
     } finally {
       setLoading(false);
@@ -141,12 +146,17 @@ export function RoomJoinScreen() {
           isHost: false,
         });
       } catch (err: any) {
-        setError(err.message ?? 'Could not find that room. Check the code and try again.');
+        let friendlyMessage = err.message ?? 'Could not find that room. Check the code and try again.';
+        if (friendlyMessage.includes('fetch') || friendlyMessage.includes('Network') || friendlyMessage.includes('UnknownHostException')) {
+          friendlyMessage = 'Network Error. Please check your internet connection and try again.';
+        }
+        setError(friendlyMessage);
         triggerShake();
         setLoading(false);
       }
     } else {
-      setError('Invalid QR code format');
+      setError('Invalid QR code format. Room codes must be exactly 6 characters.');
+      triggerShake();
     }
   }, [navigation, triggerShake]);
 
@@ -219,12 +229,6 @@ export function RoomJoinScreen() {
           returnKeyType="go"
         />
 
-        {error && (
-          <Text variant="labelM" color="error" style={styles.errorText}>
-            {error}
-          </Text>
-        )}
-
         <Animated.View entering={FadeInDown.delay(150).springify()} style={styles.actionColumn}>
           <Button
             variant="primary"
@@ -272,6 +276,18 @@ export function RoomJoinScreen() {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* Error Dialog */}
+      <Dialog
+        visible={!!error}
+        title="SYS.ERROR // JOIN_FAILED"
+        message={error ?? ''}
+        primaryAction={{
+          label: 'Acknowledge',
+          onPress: () => setError(null),
+        }}
+        onDismiss={() => setError(null)}
+      />
     </SafeAreaView>
   );
 }
