@@ -517,7 +517,6 @@ export function GameSetupScreen() {
             </Text>
           </Pressable>
         </View>
-        </View>
       </ScrollView>
 
       {/* Bottom Bar */}
