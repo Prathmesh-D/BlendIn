@@ -23,6 +23,7 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from '../lib/haptics';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { usePackStore } from '../store/packStore';
@@ -34,6 +35,36 @@ import { Button } from '../components/primitives/Button';
 import { Dialog } from '../components/primitives/Dialog';
 
 type RouteParams = { editPackId?: string };
+
+const AI_PROMPT = `You are an expert game designer generating a word pack for the social deduction game "BlendIn."
+
+CATEGORY: [INSERT CATEGORY HERE]
+COUNT: [INSERT NUMBER OF ENTRIES]
+
+Generate entries with exactly 5 comma-separated values per line:
+1. Primary Word - the secret word given to the Crew.
+2. Easy Decoy - clearly in the same category as the Primary, but different enough that a hint pinned specifically to the Primary should expose an Imposter using this word. Still belongs to the same category, just a distant member of it - not random or unrelated.
+3. Medium Decoy - shares a meaningful chunk of traits, context, or function with the Primary. A generic hint could apply to both, but a specific one shouldn't.
+4. Hard Decoy - the Primary's closest neighbor: same subcategory, same typical context, same associations. Most natural hints for the Primary should also fit this word. The distinction should require genuinely precise, insider-level knowledge - not just "similar vibe" but "almost interchangeable in casual conversation."
+5. Hint - EXACTLY ONE WORD. No phrases, no hyphenated compounds acting as two ideas, no articles. It must be a real noun, adjective, or verb that names a genuine, specific, recognizable trait, feature, role, or association of the Primary - the kind of word someone who actually knows the Primary would blurt out. It must ALSO genuinely apply to the Hard Decoy. Reject any one-word hint that is so broad it would apply to most items in the entire category (that's filler, not a hint) - it must be pointed enough to feel like real evidence, just evidence that two specific words both satisfy.
+
+CALIBRATION RULES (critical for making the game interesting):
+- Do not choose decoys by superficial similarity alone (e.g. same letter, same length, rhymes). Similarity must be conceptual/functional/contextual.
+- The Easy Decoy should require at least one moment of thought - obviously wrong once you know the Primary, but not so far removed that it feels random or breaks category logic.
+- The Hard Decoy must be chosen so that an Imposter hearing only the Hint could genuinely believe the Primary word IS the Hard Decoy. If the Hard Decoy is too easy to distinguish, replace it with a closer one.
+- Vary the "axis" of difficulty across entries - mix decoys/hints that differ by function, context of use, era, connotation, role, tone, scale, texture, sound, etc., so players can't reverse-engineer a single pattern by always expecting the same kind of word.
+- For every line, run this two-part check silently before finalizing:
+  (a) "Is this single word specific enough that it sounds like real insider knowledge about the Primary, not a lazy category-wide generality?" If it feels generic, pick a sharper, more distinctive word.
+  (b) "Does this exact word also genuinely, unambiguously apply to the Hard Decoy?" If NO, either choose a different word both share, or swap in a Hard Decoy that shares it.
+  A word that only passes (b) by being vague fails (a) and must be replaced. A word that only passes (a) by being too narrow fails (b) and must be replaced.
+- The hint word must never be: the Primary Word itself, a direct synonym of it, part of its name, or a word that uniquely identifies it and not the Hard Decoy.
+- No two entries in the same pack should share a Primary Word, and avoid reusing the same decoy word or hint word across multiple entries unless the category is very small.
+
+OUTPUT CONSTRAINTS:
+- Provide ONLY the raw comma-separated data, wrapped in a single code block.
+- Exactly 5 items per line, no headers, no bullets, no numbering.
+- No spaces after commas unless part of the word itself.
+- No introductory or closing commentary outside the code block.`;
 
 function generateId() {
   return `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -203,6 +234,7 @@ export function CustomPackCreateScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const isEditing = !!editPackId;
 
@@ -377,6 +409,27 @@ export function CustomPackCreateScreen() {
                 numberOfLines={2}
               />
             </View>
+          </View>
+
+          {/* AI Generator Help */}
+          <View style={styles.aiBlock}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm }}>
+              <Text variant="labelL" color="secondary">SYS.TOOL // AI_GENERATOR</Text>
+            </View>
+            <Text variant="bodyS" color="light.muted" style={{ marginBottom: spacing.md, lineHeight: 20 }}>
+              Want to generate a pack instantly? Copy our specialized prompt below, change the category/count, and paste it into ChatGPT or Claude. Then, copy their output block and paste it directly into the first word input below to auto-fill everything!
+            </Text>
+            <Button 
+              variant="secondary" 
+              onPress={async () => {
+                await Clipboard.setStringAsync(AI_PROMPT);
+                Haptics.triggerNotification(Haptics.NotificationFeedbackType.Success);
+                setCopiedPrompt(true);
+                setTimeout(() => setCopiedPrompt(false), 3000);
+              }}
+            >
+              {copiedPrompt ? '[ PROMPT COPIED! ]' : '[ COPY AI PROMPT ]'}
+            </Button>
           </View>
 
           {/* Words */}
@@ -577,4 +630,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors['neutral.border'],
   },
+  aiBlock: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors['neutral.border'],
+    backgroundColor: colors['base.elevated'],
+  }
 });
