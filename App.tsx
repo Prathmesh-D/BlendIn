@@ -19,6 +19,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { fontAssets, colors } from './src/theme';
 import { initializeAuth, subscribeToAuthChanges } from './src/lib/authService';
+import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Keep the splash visible while fonts load
@@ -35,9 +36,25 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // Determine initial route
+  // Determine initial route and check for updates
   useEffect(() => {
-    async function determineRoute() {
+    async function prepareApp() {
+      // 1. Force check for OTA updates on cold boot
+      try {
+        if (!__DEV__) {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+            return; // Stop execution, the app is restarting
+          }
+        }
+      } catch (e) {
+        // Silently fail if offline or check times out, so we don't block the user
+        console.log('OTA Update check failed:', e);
+      }
+
+      // 2. Resolve initial route
       try {
         const hasOnboarded = await AsyncStorage.getItem('@blendin_onboarding_done');
         setInitialRoute(hasOnboarded === 'true' ? 'MainTabs' : 'Onboarding');
@@ -45,7 +62,7 @@ export default function App() {
         setInitialRoute('Onboarding');
       }
     }
-    determineRoute();
+    prepareApp();
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
