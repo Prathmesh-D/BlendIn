@@ -10,7 +10,8 @@
       "supportsTablet": true
     },
     "android": {
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.BlendIn"
     },
     "splash": {
       "image": "./assets/icon.png",
@@ -19,6 +20,11 @@
     },
     "web": {
       "favicon": "./assets/favicon_io/favicon-32x32.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "daeabc38-48fc-4cc2-806f-47397a48593a"
+      }
     }
   }
 }
