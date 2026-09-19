@@ -1,11 +1,8 @@
-# BlendIn<div align="center">
-
 <div align="center">
-  <img src="./assets/icon.png" alt="BlendIn Logo" width="160" height="160" />
-</div>
-</br>
 
-<div align="center">
+<img src="./assets/icon.png" alt="BlendIn Logo" width="160" height="160" />
+
+# BlendIn
 
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=700&size=28&pause=1000&color=4da2ca&center=true&vCenter=true&width=600&lines=The+Ultimate+Social+Deduction+Game.;Play+anywhere.+No+board+required.;Deceive+your+friends.+Blend+in.;React+Native+%7C+Supabase+%7C+TypeScript)](https://git.io/typing-svg)
 
