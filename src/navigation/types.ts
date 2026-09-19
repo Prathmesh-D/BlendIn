@@ -24,7 +24,6 @@ export type RootStackParamList = {
   GameSetup: undefined;
   RoomJoin: undefined;
   RoomLobby: { roomId: string; joinCode: string; isHost: boolean };
-  MatchHistory: undefined;
   
   PackDetail: { packId: string; communityId?: string; isCustom?: boolean };
   CustomPackCreate: { editPackId?: string };

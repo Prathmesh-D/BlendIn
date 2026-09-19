@@ -26,7 +26,6 @@ import { CustomPackCreateScreen } from '../screens/CustomPackCreateScreen';
 import { RoleRevealScreen } from '../screens/RoleRevealScreen';
 import { DiscussionScreen } from '../screens/DiscussionScreen';
 import { RoundSummaryScreen } from '../screens/RoundSummaryScreen';
-import { MatchHistoryScreen } from '../screens/MatchHistoryScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -96,7 +95,6 @@ export function RootNavigator({ initialRouteName = 'Onboarding' }: { initialRout
         {/* ── Game flows & Stack Screens (pushed over tabs) ─────────────── */}
         <Stack.Screen name="GameSetup" component={GameSetupScreen} />
         <Stack.Screen name="RoomJoin" component={RoomJoinScreen} />
-        <Stack.Screen name="MatchHistory" component={MatchHistoryScreen} />
         <Stack.Screen
           name="RoomLobby"
           component={RoomLobbyScreen}

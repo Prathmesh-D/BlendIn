@@ -93,14 +93,6 @@ export function HomeScreen() {
           >
             JOIN A GAME
           </Button>
-          <Button
-            variant="ghost"
-            fullWidth
-            onPress={() => navigation.navigate('MatchHistory')}
-            accessibilityLabel="View match history"
-          >
-            MATCH HISTORY
-          </Button>
         </Animated.View>
       </View>
     </SafeAreaView>
