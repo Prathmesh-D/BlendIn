@@ -65,7 +65,7 @@ export class RoleAssignmentError extends Error {
  */
 function selectImposters(
   players: Player[],
-  count: 1 | 2,
+  count: number,
   history: Record<string, number>,
 ): string[] {
   if (players.length < 3) {
@@ -234,7 +234,10 @@ export function assignRoles(input: AssignRolesInput): AssignRolesOutput {
   if (isParanoiaRound) {
     imposterIds = players.map(p => p.id);
   } else {
-    imposterIds = selectImposters(players, imposterCount, imposterHistory);
+    // Safety clamp: ensure imposters <= floor(players/3), but at least 1
+    const maxImposters = Math.max(1, Math.floor(players.length / 3));
+    const safeImposterCount = Math.min(imposterCount, maxImposters);
+    imposterIds = selectImposters(players, safeImposterCount, imposterHistory);
   }
   const imposterSet = new Set(imposterIds);
 

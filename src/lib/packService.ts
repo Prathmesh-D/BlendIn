@@ -64,7 +64,6 @@ export async function fetchCommunityPacks(opts?: {
   let query = supabase
     .from('community_packs')
     .select('*, profiles!community_packs_creator_id_fkey(display_name)')
-    .eq('is_approved', true)
     .eq('is_flagged', false)
     .order('vote_count', { ascending: false })
     .range(from, to);
@@ -138,6 +137,19 @@ export async function updateCommunityPack(
     .eq('id', communityId);
 
   if (error) throw new Error(`Failed to update pack: ${error.message}`);
+}
+
+// ─── Fetch pack by ID ─────────────────────────────────────────────────────────
+export async function fetchPackById(communityId: string): Promise<CommunityPack | null> {
+  const { data, error } = await supabase
+    .from('community_packs')
+    .select('*, profiles!community_packs_creator_id_fkey(display_name)')
+    .eq('id', communityId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const votedIds = await getMyVotedPackIds();
+  return rowToCommunityPack(data as CommunityPackRow, votedIds.includes(data.id));
 }
 
 // ─── Delete own pack ──────────────────────────────────────────────────────────

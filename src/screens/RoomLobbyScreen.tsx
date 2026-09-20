@@ -46,6 +46,7 @@ import { assignRoles } from '../engine/roleAssignment';
 import { colors, spacing, radii, layout, fonts, springs } from '../theme';
 import { Text } from '../components/primitives/Text';
 import { Button } from '../components/primitives/Button';
+import { Dialog } from '../components/primitives/Dialog';
 import QRCode from 'react-native-qrcode-svg';
 
 type RouteParams = {
@@ -105,6 +106,16 @@ export function RoomLobbyScreen() {
 
   const myProfileId = user?.id ?? '';
   const allReady = participants.length >= 2 && participants.every((p) => p.is_ready);
+
+  // Auto-clamp imposter count if participants leave
+  useEffect(() => {
+    if (isHost && participants.length > 0) {
+      const maxImposters = Math.max(1, Math.floor(participants.length / 3));
+      if (roundSettings.imposterCount > maxImposters) {
+        setRoundSettings({ imposterCount: maxImposters });
+      }
+    }
+  }, [participants.length, isHost, roundSettings.imposterCount, setRoundSettings]);
 
   // ── Load initial participants + subscribe to live updates ─────────────────
   useEffect(() => {
@@ -264,6 +275,43 @@ export function RoomLobbyScreen() {
 
       <View style={styles.divider} />
 
+      {/* Host Settings */}
+      {isHost && participants.length >= 3 && (
+        <Animated.View
+          layout={Layout.springify().damping(14).mass(0.8)}
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(200)}
+          style={{ paddingHorizontal: layout.screenPaddingH, paddingBottom: spacing.lg, paddingTop: spacing.md }}
+        >
+          <View style={styles.hostSettingsSection}>
+            <Text variant="labelS" color="neutral" style={styles.hostSettingsEyebrow}>
+              SYS.SETTINGS // IMPOSTERS
+            </Text>
+            <View style={[styles.imposterToggleRow, { flexWrap: 'wrap' }]}>
+              {Array.from({ length: Math.max(1, Math.floor(participants.length / 3)) }).map((_, i) => {
+                const count = i + 1;
+                return (
+                  <Pressable
+                    key={count}
+                    style={[
+                      styles.imposterPill, 
+                      roundSettings.imposterCount === count && styles.imposterPillActive,
+                      { minWidth: '45%' }
+                    ]}
+                    onPress={() => setRoundSettings({ imposterCount: count })}
+                  >
+                    <Text variant="labelM" color={roundSettings.imposterCount === count ? 'base' : 'neutral'}>
+                      {count} {count === 1 ? 'IMPOSTER' : 'IMPOSTERS'}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+          <View style={styles.divider} />
+        </Animated.View>
+      )}
+
       {/* Live participant list */}
       <ScrollView style={styles.listScroll} showsVerticalScrollIndicator={false}>
         <View style={styles.listHeader}>
@@ -297,11 +345,7 @@ export function RoomLobbyScreen() {
         )}
       </ScrollView>
 
-      {error && (
-        <Text variant="labelM" color="error" style={styles.errorText}>
-          {error}
-        </Text>
-      )}
+
 
       {/* Bottom Bar */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + spacing.md }]}>
@@ -326,6 +370,17 @@ export function RoomLobbyScreen() {
           </Button>
         )}
       </View>
+
+      <Dialog
+        visible={!!error}
+        title="SYS.ERROR // ROOM_ERROR"
+        message={error ?? ''}
+        secondaryAction={{
+          label: 'Acknowledge',
+          onPress: () => setError(null),
+        }}
+        onDismiss={() => setError(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -367,6 +422,29 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     backgroundColor: '#FFFFFF',
     borderRadius: radii.md,
+  },
+  hostSettingsSection: {
+    paddingHorizontal: layout.screenPaddingH,
+    paddingVertical: spacing.md,
+  },
+  hostSettingsEyebrow: {
+    letterSpacing: 2,
+    marginBottom: spacing.sm,
+  },
+  imposterToggleRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  imposterPill: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors['neutral.border'],
+  },
+  imposterPillActive: {
+    backgroundColor: colors.light,
+    borderColor: colors.light,
   },
   divider: {
     height: 1,
@@ -421,11 +499,7 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     alignItems: 'center',
   },
-  errorText: {
-    textAlign: 'center',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingBottom: spacing.sm,
-  },
+
   bottomBar: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing.md,

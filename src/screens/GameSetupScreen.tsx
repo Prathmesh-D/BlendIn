@@ -169,7 +169,7 @@ export function GameSetupScreen() {
   );
   const [selectedVariant, setSelectedVariant] = useState<ImposterVariant>('classic_medium');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [imposterCount, setImposterCount] = useState<1 | 2>(1);
+  const [imposterCount, setImposterCount] = useState<number>(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [allPacksModalVisible, setAllPacksModalVisible] = useState(false);
@@ -190,14 +190,18 @@ export function GameSetupScreen() {
 
   const changePlayerCount = useCallback((delta: number) => {
     setPlayerCount((prev) => {
-      const next = Math.min(Math.max(prev + delta, 3), 10);
+      const next = Math.min(Math.max(prev + delta, 3), 12);
       setPlayerNames((names) => {
         if (next > names.length) {
           return [...names, ...Array.from({ length: next - names.length }, (_, i) => `Player ${names.length + i + 1}`)];
         }
         return names.slice(0, next);
       });
-      if (next < 6 && imposterCount === 2) setImposterCount(1);
+      // Auto-clamp imposter count if the new player count lowers the max limit
+      const nextMaxImposters = Math.max(1, Math.floor(next / 3));
+      if (imposterCount > nextMaxImposters) {
+        setImposterCount(nextMaxImposters);
+      }
       return next;
     });
   }, [imposterCount]);
@@ -349,9 +353,9 @@ export function GameSetupScreen() {
             <Text variant="displayXL" color="light">{playerCount}</Text>
           </View>
           <Pressable
-            style={[styles.stepperBtn, playerCount >= 10 && styles.stepperDisabled]}
+            style={[styles.stepperBtn, playerCount >= 12 && styles.stepperDisabled]}
             onPress={() => changePlayerCount(1)}
-            disabled={playerCount >= 10}
+            disabled={playerCount >= 12}
           >
             <Text variant="displayL" color="light">+</Text>
           </Pressable>
@@ -382,6 +386,36 @@ export function GameSetupScreen() {
             </Animated.View>
           ))}
         </View>
+        
+        {showImposterCountToggle && (
+          <Animated.View 
+            layout={Layout.springify().damping(14).mass(0.8)} 
+            entering={FadeIn.duration(200)} 
+            exiting={FadeOut.duration(200)}
+            style={{ paddingHorizontal: layout.screenPaddingH, paddingBottom: spacing.lg, paddingTop: spacing.md }}
+          >
+            <View style={[styles.inlineDifficultyGrid, { flexWrap: 'wrap' }]}>
+              {Array.from({ length: Math.max(1, Math.floor(playerCount / 3)) }).map((_, i) => {
+                const count = i + 1;
+                return (
+                  <Pressable
+                    key={count}
+                    style={[
+                      styles.diffChip, 
+                      imposterCount === count && styles.diffChipActive,
+                      { minWidth: '45%' }
+                    ]}
+                    onPress={() => setImposterCount(count)}
+                  >
+                    <Text variant="labelM" color={imposterCount === count ? 'base' : 'neutral'}>
+                      {count} {count === 1 ? 'IMPOSTER' : 'IMPOSTERS'}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Animated.View>
+        )}
           </>
         )}
 
@@ -416,7 +450,7 @@ export function GameSetupScreen() {
         {hasRestrictedPack && (
           <View style={styles.restrictedWarning}>
             <Text variant="labelS" color="error">
-              > SYS.WARN: ONE OR MORE SELECTED PACKS RESTRICTS GAMEPLAY TO CATEGORY/BLANK ONLY
+              {'> SYS.WARN: ONE OR MORE SELECTED PACKS RESTRICTS GAMEPLAY TO CATEGORY/BLANK ONLY'}
             </Text>
           </View>
         )}
@@ -473,26 +507,7 @@ export function GameSetupScreen() {
           })}
         </View>
 
-        {/* Imposter Count */}
-        {showImposterCountToggle && (
-          <>
-            <SectionHeader>Imposters</SectionHeader>
-            <View style={styles.gridRow}>
-              <Pressable
-                style={[styles.modePill, imposterCount === 1 && styles.modeActive]}
-                onPress={() => setImposterCount(1)}
-              >
-                <Text variant="labelL" color={imposterCount === 1 ? 'light' : 'neutral'}>1</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modePill, imposterCount === 2 && styles.modeActive]}
-                onPress={() => setImposterCount(2)}
-              >
-                <Text variant="labelL" color={imposterCount === 2 ? 'light' : 'neutral'}>2</Text>
-              </Pressable>
-            </View>
-          </>
-        )}
+
 
         {/* ── Modifiers ──────────────────────────────────────────────────────── */}
         <SectionHeader>Modifiers</SectionHeader>
@@ -559,7 +574,7 @@ export function GameSetupScreen() {
         visible={!!error}
         title="SYS.ERROR // SETUP_FAILED"
         message={error ?? ''}
-        primaryAction={{
+        secondaryAction={{
           label: 'Acknowledge',
           onPress: () => setError(null),
         }}

@@ -15,7 +15,7 @@ export interface DialogProps {
   visible: boolean;
   title: string;
   message: string;
-  primaryAction: {
+  primaryAction?: {
     label: string;
     onPress: () => void;
     isDestructive?: boolean;
@@ -78,22 +78,24 @@ export function Dialog({
                     </Text>
                   </Pressable>
                 )}
-                <Pressable
-                  onPress={primaryAction.onPress}
-                  style={[
-                    styles.actionBtnPrimary,
-                    primaryAction.isDestructive && styles.actionBtnDestructive,
-                  ]}
-                >
-                  <Text
-                    variant="labelM"
-                    color={primaryAction.isDestructive ? 'error' : 'base'}
+                {primaryAction && (
+                  <Pressable
+                    onPress={primaryAction.onPress}
+                    style={[
+                      styles.actionBtnPrimary,
+                      primaryAction.isDestructive && styles.actionBtnDestructive,
+                    ]}
                   >
-                    {primaryAction.isDestructive
-                      ? `[ ${primaryAction.label.toUpperCase()} ]`
-                      : primaryAction.label.toUpperCase()}
-                  </Text>
-                </Pressable>
+                    <Text
+                      variant="labelM"
+                      color={primaryAction.isDestructive ? 'error' : 'base'}
+                    >
+                      {primaryAction.isDestructive
+                        ? `[ ${primaryAction.label.toUpperCase()} ]`
+                        : primaryAction.label.toUpperCase()}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>

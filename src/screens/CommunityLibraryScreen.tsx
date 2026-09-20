@@ -36,10 +36,12 @@ type Tab = 'builtin' | 'community' | 'mine';
 function PackCard({
   pack,
   index,
+  isBuiltin,
   onPress,
 }: {
   pack: WordPack | CommunityPack;
   index: number;
+  isBuiltin?: boolean;
   onPress: () => void;
 }) {
   const communityPack = 'communityId' in pack ? (pack as CommunityPack) : null;
@@ -69,7 +71,7 @@ function PackCard({
             </Text>
           </View>
         )}
-        {!communityPack && (
+        {isBuiltin && (
           <View style={styles.builtinTag}>
             <Text variant="labelS" color="secondary">BUILT-IN</Text>
           </View>
@@ -86,7 +88,7 @@ export function CommunityLibraryScreen() {
   const insets = useSafeAreaInsets();
   const { customPacks, isHydrated, hydrate } = usePackStore();
 
-  const [activeTab, setActiveTab] = useState<Tab>('builtin');
+  const [activeTab, setActiveTab] = useState<Tab>('community');
   const [search, setSearch] = useState('');
   const [communityPacks, setCommunityPacks] = useState<CommunityPack[]>([]);
   const [myPublishedPacks, setMyPublishedPacks] = useState<CommunityPack[]>([]);
@@ -142,16 +144,16 @@ export function CommunityLibraryScreen() {
   const q = search.toLowerCase();
   const builtinFiltered = BUILTIN_PACKS.filter(
     (p) => !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
-  );
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   // "My Packs" = local custom packs + published ones from Supabase
   const myAllPacks: (WordPack | CommunityPack)[] = [
     ...customPacks.filter((p) => !q || p.name.toLowerCase().includes(q)),
     ...myPublishedPacks.filter(
-      (p) => !customPacks.find((cp) => cp.id === `community-${p.communityId}`) &&
+      (p) => !customPacks.find((cp) => cp.name.toLowerCase() === p.name.toLowerCase()) &&
              (!q || p.name.toLowerCase().includes(q)),
     ),
-  ];
+  ].sort((a, b) => a.name.localeCompare(b.name));
 
   const listData: (WordPack | CommunityPack)[] =
     activeTab === 'builtin' ? builtinFiltered :
@@ -159,9 +161,9 @@ export function CommunityLibraryScreen() {
     myAllPacks;
 
   const TABS: { key: Tab; label: string }[] = [
-    { key: 'builtin', label: 'Built-in' },
-    { key: 'community', label: 'Community' },
     { key: 'mine', label: 'My Packs' },
+    { key: 'community', label: 'Community' },
+    { key: 'builtin', label: 'Built-in' },
   ];
 
   return (
@@ -229,19 +231,28 @@ export function CommunityLibraryScreen() {
         <FlatList
           data={listData}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <PackCard
-              pack={item}
-              index={index}
-              onPress={() =>
-                navigation.navigate('PackDetail', {
-                  packId: item.id,
-                  communityId: 'communityId' in item ? (item as CommunityPack).communityId : undefined,
-                  isCustom: customPacks.some((cp) => cp.id === item.id),
-                })
-              }
-            />
-          )}
+          renderItem={({ item, index }) => {
+            const isBuiltin = BUILTIN_PACKS.some((bp) => bp.id === item.id);
+            return (
+              <PackCard
+                pack={item}
+                index={index}
+                isBuiltin={isBuiltin}
+                onPress={() => {
+                  const localPack = customPacks.find(cp => cp.name.toLowerCase() === item.name.toLowerCase());
+                  const commPack = myPublishedPacks.find(p => p.name.toLowerCase() === item.name.toLowerCase()) || 
+                                   (communityPacks.find(p => p.name.toLowerCase() === item.name.toLowerCase()));
+                  
+                  navigation.navigate('PackDetail', {
+                    packId: item.id,
+                    localPackId: localPack?.id,
+                    communityId: commPack?.communityId || ('communityId' in item ? (item as CommunityPack).communityId : undefined),
+                    isCustom: !!localPack,
+                  });
+                }}
+              />
+            );
+          }}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text variant="labelM" color="neutral">

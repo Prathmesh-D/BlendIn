@@ -21,6 +21,7 @@ import { fontAssets, colors } from './src/theme';
 import { initializeAuth, subscribeToAuthChanges } from './src/lib/authService';
 import * as Updates from 'expo-updates';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { OTAUpdatePrompt } from './src/components/OTAUpdatePrompt';
 
 // Keep the splash visible while fonts load
 SplashScreen.preventAutoHideAsync();
@@ -39,20 +40,7 @@ export default function App() {
   // Determine initial route and check for updates
   useEffect(() => {
     async function prepareApp() {
-      // 1. Force check for OTA updates on cold boot
-      try {
-        if (!__DEV__) {
-          const update = await Updates.checkForUpdateAsync();
-          if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            await Updates.reloadAsync();
-            return; // Stop execution, the app is restarting
-          }
-        }
-      } catch (e) {
-        // Silently fail if offline or check times out, so we don't block the user
-        console.log('OTA Update check failed:', e);
-      }
+
 
       // 2. Resolve initial route
       try {
@@ -81,6 +69,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar style="light" />
         <RootNavigator initialRouteName={initialRoute} />
+        <OTAUpdatePrompt />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

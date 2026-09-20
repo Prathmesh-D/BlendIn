@@ -26,7 +26,7 @@ export type ImposterVariant =
 
 export interface RoomSettings {
   variant: ImposterVariant;
-  imposterCount: 1 | 2;
+  imposterCount: number;
   selectedPackIds: string[];
 }
 

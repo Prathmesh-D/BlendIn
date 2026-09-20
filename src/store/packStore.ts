@@ -151,6 +151,6 @@ export const usePackStore = create<PackState>((set, get) => ({
       ...BUILTIN_PACKS,
       ...customPacks,
       ...installedCommunityPacks,
-    ];
+    ].sort((a, b) => a.name.localeCompare(b.name));
   },
 }));

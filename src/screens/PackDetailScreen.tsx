@@ -21,7 +21,8 @@ import * as Haptics from '../lib/haptics';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { BUILTIN_PACKS, type WordPack } from '../data/builtinPacks';
 import { usePackStore, type CommunityPack } from '../store/packStore';
-import { toggleVotePack, reportPack, fetchCommunityPacks, getMyVotedPackIds } from '../lib/packService';
+import { toggleVotePack, reportPack, fetchPackById, getMyVotedPackIds, deleteCommunityPack } from '../lib/packService';
+import { useAuthStore } from '../store/authStore';
 import { colors, spacing, radii, layout, fonts } from '../theme';
 import { Text } from '../components/primitives/Text';
 import { Button } from '../components/primitives/Button';
@@ -39,7 +40,8 @@ export function PackDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { packId, communityId, isCustom } = route.params as RouteParams;
+  const { packId, localPackId, communityId, isCustom } = route.params as RouteParams;
+  const { user } = useAuthStore();
 
   const {
     customPacks,
@@ -69,6 +71,7 @@ export function PackDetailScreen() {
 
   const communityPack = pack && 'communityId' in pack ? (pack as CommunityPack) : null;
   const isBuiltin = BUILTIN_PACKS.some((p) => p.id === packId);
+  const isMyCommunityPack = communityPack && user && communityPack.creatorId === user.id;
 
   const hasDecoys = pack?.words.some((w) => !!w.decoy_easy?.trim()) ?? false;
   const hasHints = pack?.words.some((w) => !!w.hint_text?.trim()) ?? false;
@@ -78,13 +81,10 @@ export function PackDetailScreen() {
   useEffect(() => {
     if (!pack && communityId) {
       setFetching(true);
-      getMyVotedPackIds().then((votedIds) => {
-        fetchCommunityPacks({ myVotedIds: votedIds }).then((packs) => {
-          const found = packs.find((p) => p.communityId === communityId);
-          if (found) setPack(found);
-          setFetching(false);
-        }).catch(() => setFetching(false));
-      });
+      fetchPackById(communityId).then((found) => {
+        if (found) setPack(found);
+        setFetching(false);
+      }).catch(() => setFetching(false));
     }
   }, [pack, communityId]);
 
@@ -137,9 +137,20 @@ export function PackDetailScreen() {
 
   const confirmDelete = useCallback(async () => {
     setDeleteDialogVisible(false);
-    await deleteCustomPack(packId);
-    navigation.goBack();
-  }, [packId, deleteCustomPack, navigation]);
+    setFetching(true);
+    try {
+      if (isCustom) {
+        await deleteCustomPack(localPackId || packId);
+      }
+      if (isMyCommunityPack && communityId) {
+        await deleteCommunityPack(communityId);
+      }
+      navigation.goBack();
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+      setFetching(false);
+    }
+  }, [isCustom, isMyCommunityPack, packId, localPackId, communityId, deleteCustomPack, navigation]);
 
   const handleReport = useCallback(() => {
     if (!communityId) return;
@@ -197,7 +208,7 @@ export function PackDetailScreen() {
           <Text variant="labelM" color="light.muted">BACK</Text>
         </Pressable>
         <Text variant="labelM" color="neutral">PACK DETAIL</Text>
-        {isCustom ? (
+        {isCustom || isMyCommunityPack ? (
           <Pressable onPress={handleDelete} style={styles.deleteBtn}>
             <Text variant="labelM" color="error">DELETE</Text>
           </Pressable>
@@ -325,7 +336,10 @@ export function PackDetailScreen() {
               variant="primary"
               fullWidth
               onPress={() =>
-                navigation.navigate('CustomPackCreate', { editPackId: packId })
+                navigation.navigate('CustomPackCreate', { 
+                  editPackId: localPackId || packId,
+                  communityId: isMyCommunityPack ? communityId : undefined
+                })
               }
               accessibilityLabel="Edit this custom pack"
             >
@@ -345,7 +359,7 @@ export function PackDetailScreen() {
       <Dialog
         visible={deleteDialogVisible}
         title="SYS.WARN // DELETE_PACK"
-        message={`Delete "${pack.name}"? This cannot be undone locally.`}
+        message={`Delete "${pack?.name}"? ${isMyCommunityPack && communityId ? 'This will permanently remove it from your device and the community for all players.' : 'This cannot be undone locally.'}`}
         primaryAction={{
           label: 'Delete',
           onPress: confirmDelete,

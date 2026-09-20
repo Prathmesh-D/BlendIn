@@ -53,7 +53,7 @@ export interface PlayerRole {
 
 export interface RoundSettings {
   variant: ImposterVariant;
-  imposterCount: 1 | 2;
+  imposterCount: number;
   selectedPackIds: string[];
   paranoiaMode: boolean;
   /** Populated after word draw. */

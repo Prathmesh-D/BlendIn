@@ -27,14 +27,14 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from '../lib/haptics';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { usePackStore } from '../store/packStore';
-import { submitCommunityPack, updateCommunityPack } from '../lib/packService';
-import type { WordPack, WordEntry } from '../data/builtinPacks';
+import { submitCommunityPack, updateCommunityPack, deleteCommunityPack } from '../lib/packService';
+import { BUILTIN_PACKS, type WordPack, type WordEntry } from '../data/builtinPacks';
 import { colors, spacing, radii, layout, fonts } from '../theme';
 import { Text } from '../components/primitives/Text';
 import { Button } from '../components/primitives/Button';
 import { Dialog } from '../components/primitives/Dialog';
 
-type RouteParams = { editPackId?: string };
+type RouteParams = { editPackId?: string; communityId?: string };
 
 const AI_PROMPT = `You are an expert game designer generating a word pack for the social deduction game "BlendIn."
 
@@ -217,19 +217,20 @@ export function CustomPackCreateScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { editPackId } = (route.params ?? {}) as RouteParams;
+  const { editPackId, communityId } = (route.params ?? {}) as RouteParams;
 
   const { customPacks, addCustomPack, updateCustomPack: updateLocalPack, deleteCustomPack } = usePackStore();
 
   // Load existing pack for editing
   const existingPack = editPackId ? customPacks.find((p) => p.id === editPackId) : undefined;
+  const isInitiallyPublished = !!communityId;
 
   const [name, setName] = useState(existingPack?.name ?? '');
   const [description, setDescription] = useState(existingPack?.description ?? '');
   const [words, setWords] = useState<WordEntry[]>(
     existingPack?.words ?? [makeBlankWord()],
   );
-  const [publishToComm, setPublishToComm] = useState(false);
+  const [publishToComm, setPublishToComm] = useState(isInitiallyPublished);
   const [isRestricted, setIsRestricted] = useState(existingPack?.is_restricted ?? false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -316,8 +317,27 @@ export function CustomPackCreateScreen() {
   const handleSave = useCallback(async () => {
     const trimName = name.trim();
     if (!trimName) { setError('Pack name is required.'); return; }
+
+    const isDuplicateName = BUILTIN_PACKS.some(p => p.name.toLowerCase() === trimName.toLowerCase()) || 
+      customPacks.some(p => p.name.toLowerCase() === trimName.toLowerCase() && p.id !== editPackId);
+    
+    if (isDuplicateName) {
+      setError('A pack with this name already exists.');
+      return;
+    }
+
     const validWords = words.filter((w) => w.primary_word.trim());
     if (validWords.length < 3) { setError('Add at least 3 words.'); return; }
+
+    const wordCounts = new Map<string, number>();
+    for (const w of validWords) {
+      const pw = w.primary_word.trim().toLowerCase();
+      wordCounts.set(pw, (wordCounts.get(pw) || 0) + 1);
+      if (wordCounts.get(pw)! > 1) {
+        setError(`Duplicate word found: "${w.primary_word.trim()}". Each primary word must be unique.`);
+        return;
+      }
+    }
 
     setError(null);
     setLoading(true);
@@ -337,8 +357,17 @@ export function CustomPackCreateScreen() {
         await addCustomPack(packData);
       }
 
-      if (publishToComm) {
+      if (publishToComm && !isInitiallyPublished) {
         await submitCommunityPack({
+          name: trimName,
+          description: description.trim(),
+          words: validWords,
+          is_restricted: isRestricted,
+        });
+      } else if (!publishToComm && isInitiallyPublished && communityId) {
+        await deleteCommunityPack(communityId);
+      } else if (publishToComm && isInitiallyPublished && communityId) {
+        await updateCommunityPack(communityId, {
           name: trimName,
           description: description.trim(),
           words: validWords,
@@ -353,7 +382,7 @@ export function CustomPackCreateScreen() {
     } finally {
       setLoading(false);
     }
-  }, [name, description, words, publishToComm, isEditing, editPackId, addCustomPack, updateLocalPack, navigation]);
+  }, [name, description, words, publishToComm, isInitiallyPublished, communityId, isEditing, editPackId, addCustomPack, updateLocalPack, navigation]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -485,7 +514,7 @@ export function CustomPackCreateScreen() {
 
           {/* Publish toggle */}
           <View style={styles.publishRow}>
-            <View>
+            <View style={{ flex: 1, paddingRight: spacing.md }}>
               <Text variant="labelL" color="light">Publish to Community</Text>
               <Text variant="labelS" color="neutral">Decoys are optional (engine auto-generates them)</Text>
             </View>
@@ -505,9 +534,7 @@ export function CustomPackCreateScreen() {
             </View>
           )}
 
-          {error && (
-            <Text variant="bodyS" color="error" style={styles.errorText}>{error}</Text>
-          )}
+
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -532,6 +559,17 @@ export function CustomPackCreateScreen() {
           onPress: () => setDeleteDialogVisible(false),
         }}
         onDismiss={() => setDeleteDialogVisible(false)}
+      />
+
+      <Dialog
+        visible={!!error}
+        title="SYS.ERROR // VALIDATION"
+        message={error ?? ''}
+        secondaryAction={{
+          label: 'Acknowledge',
+          onPress: () => setError(null),
+        }}
+        onDismiss={() => setError(null)}
       />
     </SafeAreaView>
   );
@@ -622,7 +660,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
   },
 
-  errorText: { textAlign: 'center', margin: spacing.lg },
+
   bottomBar: {
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing.md,

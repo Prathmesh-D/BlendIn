@@ -1,0 +1,52 @@
+Eiffel Tower,Big Ben,Leaning Tower of Pisa,Tokyo Tower,Iron
+Big Ben,Eiffel Tower,Leaning Tower of Pisa,Elizabeth Tower,Clock
+Leaning Tower of Pisa,Big Ben,Eiffel Tower,Tower of London,Tilt
+Statue of Liberty,Christ the Redeemer,Motherland Calls,Angel of the North,Statue
+Christ the Redeemer,Statue of Liberty,Motherland Calls,Cristo Rei,Statue
+Great Wall of China,Hadrian's Wall,Berlin Wall,Great Zimbabwe,Wall
+Taj Mahal,Red Fort,Humayun's Tomb,Agra Fort,Mausoleum
+Red Fort,Taj Mahal,Agra Fort,Amber Fort,Fortress
+Colosseum,Roman Forum,Pantheon,Circus Maximus,Amphitheater
+Roman Forum,Colosseum,Pantheon,Pompeii,Ruins
+Pantheon,Colosseum,Roman Forum,Parthenon,Dome
+Parthenon,Pantheon,Acropolis,Temple of Zeus,Columns
+Acropolis,Parthenon,Roman Forum,Delphi,Hilltop
+Great Pyramid of Giza,Sphinx,Pyramid of Khafre,Step Pyramid,Pyramid
+Sphinx,Great Pyramid of Giza,Abu Simbel,Pyramid of Khafre,Riddle
+Machu Picchu,Chichen Itza,Angkor Wat,Petra,Ruins
+Chichen Itza,Machu Picchu,Teotihuacan,Tikal,Mayan
+Angkor Wat,Chichen Itza,Borobudur,Bagan,Temple
+Borobudur,Angkor Wat,Prambanan,Bagan,Temple
+Petra,Machu Picchu,Chichen Itza,Abu Simbel,Carved
+Stonehenge,Easter Island Moai,Newgrange,Avebury,Ancient
+Easter Island Moai,Stonehenge,Nazca Lines,Terracotta Army,Statues
+Terracotta Army,Easter Island Moai,Great Wall of China,Forbidden City,Buried
+Forbidden City,Terracotta Army,Great Wall of China,Summer Palace,Palace
+Summer Palace,Forbidden City,Winter Palace,Versailles,Palace
+Palace of Versailles,Summer Palace,Buckingham Palace,Winter Palace,Palace
+Buckingham Palace,Palace of Versailles,Windsor Castle,Kensington Palace,Palace
+Windsor Castle,Buckingham Palace,Edinburgh Castle,Neuschwanstein Castle,Castle
+Neuschwanstein Castle,Windsor Castle,Edinburgh Castle,Château de Chambord,Castle
+Sydney Opera House,Burj Khalifa,Petronas Towers,CN Tower,Sail
+Burj Khalifa,Sydney Opera House,Petronas Towers,One World Trade Center,Skyscraper
+Petronas Towers,Burj Khalifa,One World Trade Center,CN Tower,Twin
+CN Tower,Petronas Towers,Tokyo Tower,Space Needle,Tower
+Space Needle,CN Tower,Tokyo Tower,Sydney Tower,Tower
+Golden Gate Bridge,Brooklyn Bridge,Tower Bridge,Sydney Harbour Bridge,Bridge
+Brooklyn Bridge,Golden Gate Bridge,Tower Bridge,Manhattan Bridge,Bridge
+Tower Bridge,Brooklyn Bridge,Golden Gate Bridge,London Bridge,Bridge
+Mount Rushmore,Christ the Redeemer,Motherland Calls,Statue of Liberty,Carved
+Niagara Falls,Victoria Falls,Angel Falls,Iguazu Falls,Waterfall
+Victoria Falls,Niagara Falls,Iguazu Falls,Angel Falls,Waterfall
+Mont Saint-Michel,Neuschwanstein Castle,Machu Picchu,Petra,Tidal
+Sagrada Familia,Notre-Dame Cathedral,St. Peter's Basilica,Duomo di Milano,Basilica
+Notre-Dame Cathedral,Sagrada Familia,St. Peter's Basilica,Westminster Abbey,Cathedral
+St. Peter's Basilica,Notre-Dame Cathedral,Sagrada Familia,Duomo di Milano,Basilica
+Westminster Abbey,Notre-Dame Cathedral,St. Paul's Cathedral,Big Ben,Abbey
+Kremlin,Forbidden City,Buckingham Palace,Winter Palace,Fortress
+Winter Palace,Kremlin,Summer Palace,Peterhof,Palace
+Alhambra,Taj Mahal,Red Fort,Topkapi Palace,Moorish
+Topkapi Palace,Alhambra,Kremlin,Blue Mosque,Palace
+Blue Mosque,Topkapi Palace,Hagia Sophia,Sultanahmet,Mosque
+Hagia Sophia,Blue Mosque,Topkapi Palace,Sultanahmet Mosque,Dome
+Angkor Wat,Borobudur,Prambanan,Bayon Temple,Temple
